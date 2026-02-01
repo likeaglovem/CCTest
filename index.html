@@ -280,12 +280,21 @@
             overflow: hidden;
         }
 
+        .video-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            inset: 0;
+        }
+
         .video-thumbnail::before {
             content: '';
             position: absolute;
             inset: 0;
             background: var(--accent-gradient);
             opacity: 0.1;
+            z-index: 0;
         }
 
         .video-thumbnail .icon {
@@ -446,8 +455,10 @@
             background: var(--bg-secondary);
             border: 1px solid var(--border);
             border-radius: 20px;
-            max-width: 800px;
-            width: 100%;
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
             padding: 32px;
             position: relative;
             animation: slideUp 0.3s ease;
@@ -509,6 +520,42 @@
         .modal-section p {
             color: var(--text-secondary);
             line-height: 1.7;
+        }
+
+        .video-preview {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .video-preview iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .drive-link-top {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--accent-gradient);
+            color: var(--bg-primary);
+            text-decoration: none;
+            border-radius: 10px;
+            font-family: 'Syne', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .drive-link-top:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3);
         }
 
         .transcript {
@@ -668,7 +715,13 @@
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal()">×</button>
             <h2 class="modal-title" id="modal-title"></h2>
-            
+
+            <a id="drive-link-top" class="drive-link-top" target="_blank">
+                📁 Open in Google Drive
+            </a>
+
+            <div class="video-preview" id="video-preview" style="display: none;"></div>
+
             <div class="modal-section">
                 <h3>Details</h3>
                 <div id="modal-details"></div>
@@ -685,7 +738,6 @@
             </div>
 
             <div class="action-buttons">
-                <a id="modal-drive-link" class="btn btn-primary" target="_blank">Open in Drive</a>
                 <button class="btn btn-secondary" onclick="closeModal()">Close</button>
             </div>
         </div>
@@ -922,6 +974,16 @@
             const icon = video.type.includes('Talk') ? '🎤' : '🎬';
             const typeClass = video.type.includes('Talk') ? 'talking-head' : 'b-roll';
 
+            // Extract file ID from Drive link and create thumbnail URL
+            let thumbnailHtml = `<span class="icon">${icon}</span>`;
+            if (video.driveLink) {
+                const fileId = extractDriveFileId(video.driveLink);
+                if (fileId) {
+                    thumbnailHtml = `<img src="https://drive.google.com/thumbnail?id=${fileId}&sz=w400" alt="${video.mainSubject}" onerror="this.style.display='none'; this.parentElement.querySelector('.icon').style.display='block';">
+                                    <span class="icon" style="display:none;">${icon}</span>`;
+                }
+            }
+
             // Get first few tags
             const allTags = [...video.visualTags.split(','), ...video.contentTags.split(',')]
                 .map(t => t.trim())
@@ -930,7 +992,7 @@
 
             card.innerHTML = `
                 <div class="video-thumbnail">
-                    <span class="icon">${icon}</span>
+                    ${thumbnailHtml}
                     <span class="type-badge ${typeClass}">${video.type}</span>
                     <span class="duration-badge">${video.duration}</span>
                 </div>
@@ -949,11 +1011,44 @@
             return card;
         }
 
+        // Helper function to extract Google Drive file ID from various URL formats
+        function extractDriveFileId(url) {
+            if (!url) return null;
+
+            // Match various Drive URL formats
+            const patterns = [
+                /\/file\/d\/([a-zA-Z0-9_-]+)/,  // /file/d/FILE_ID
+                /id=([a-zA-Z0-9_-]+)/,           // id=FILE_ID
+                /\/d\/([a-zA-Z0-9_-]+)/          // /d/FILE_ID
+            ];
+
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match && match[1]) return match[1];
+            }
+
+            return null;
+        }
+
         // ===== MODAL =====
         function openModal(video) {
             const modal = document.getElementById('modal');
             document.getElementById('modal-title').textContent = video.mainSubject || video.originalFilename;
-            
+
+            // Drive link at top
+            const driveLinkTop = document.getElementById('drive-link-top');
+            driveLinkTop.href = video.driveLink;
+
+            // Video preview
+            const videoPreview = document.getElementById('video-preview');
+            const fileId = extractDriveFileId(video.driveLink);
+            if (fileId) {
+                videoPreview.style.display = 'block';
+                videoPreview.innerHTML = `<iframe src="https://drive.google.com/file/d/${fileId}/preview" allow="autoplay"></iframe>`;
+            } else {
+                videoPreview.style.display = 'none';
+            }
+
             // Details
             const details = `
                 <p><strong>Date:</strong> ${video.dateFiled}</p>
@@ -985,13 +1080,10 @@
             ]
                 .map(t => t.trim())
                 .filter(t => t && t !== 'N/A');
-            
+
             document.getElementById('modal-tags').innerHTML = allTags
                 .map(tag => `<span class="tag">${tag}</span>`)
                 .join('');
-
-            // Drive link
-            document.getElementById('modal-drive-link').href = video.driveLink;
 
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
