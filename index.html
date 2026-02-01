@@ -833,9 +833,16 @@
                         keyQuotes: cells[16]?.v || '',
                         topics: cells[17]?.v || '',
                         useCases: cells[18]?.v || '',
-                        driveLink: cells[19]?.v || '',
-                        notes: cells[20]?.v || '',
-                        analysisDate: cells[21]?.v || ''
+                        platformSuitability: cells[19]?.v || '',
+                        timeOfDay: cells[20]?.v || '',
+                        season: cells[21]?.v || '',
+                        peopleCount: cells[22]?.v || '',
+                        energyLevel: cells[23]?.v || '',
+                        cameraMovement: cells[24]?.v || '',
+                        audioQuality: cells[25]?.v || '',
+                        driveLink: cells[26]?.v || '',
+                        notes: cells[27]?.v || '',
+                        analysisDate: cells[28]?.v || ''
                     };
                 });
 
@@ -1051,15 +1058,23 @@
 
             // Details
             const details = `
-                <p><strong>Date:</strong> ${video.dateFiled}</p>
+                <p><strong>Date Filmed:</strong> ${video.dateFiled}</p>
                 <p><strong>Duration:</strong> ${video.duration}</p>
                 <p><strong>Type:</strong> ${video.type}</p>
                 <p><strong>Orientation:</strong> ${video.orientation} (${video.resolution})</p>
                 <p><strong>Location:</strong> ${video.location || 'Unknown'}</p>
-                ${video.weather !== 'N/A' ? `<p><strong>Weather:</strong> ${video.weather}</p>` : ''}
-                ${video.mood ? `<p><strong>Mood:</strong> ${video.mood}</p>` : ''}
-                ${video.colorPalette ? `<p><strong>Colors:</strong> ${video.colorPalette}</p>` : ''}
-                ${video.notes ? `<p><strong>Notes:</strong> ${video.notes}</p>` : ''}
+                ${video.weather && video.weather !== 'N/A' ? `<p><strong>Weather:</strong> ${video.weather}</p>` : ''}
+                ${video.timeOfDay && video.timeOfDay !== 'N/A' ? `<p><strong>Time of Day:</strong> ${video.timeOfDay}</p>` : ''}
+                ${video.season && video.season !== 'N/A' ? `<p><strong>Season:</strong> ${video.season}</p>` : ''}
+                ${video.mood && video.mood !== 'N/A' ? `<p><strong>Mood:</strong> ${video.mood}</p>` : ''}
+                ${video.energyLevel && video.energyLevel !== 'N/A' ? `<p><strong>Energy Level:</strong> ${video.energyLevel}</p>` : ''}
+                ${video.colorPalette && video.colorPalette !== 'N/A' ? `<p><strong>Colors:</strong> ${video.colorPalette}</p>` : ''}
+                ${video.peopleCount && video.peopleCount !== 'N/A' ? `<p><strong>People Count:</strong> ${video.peopleCount}</p>` : ''}
+                ${video.cameraMovement && video.cameraMovement !== 'N/A' ? `<p><strong>Camera Movement:</strong> ${video.cameraMovement}</p>` : ''}
+                ${video.audioQuality && video.audioQuality !== 'N/A' ? `<p><strong>Audio Quality:</strong> ${video.audioQuality}</p>` : ''}
+                ${video.platformSuitability && video.platformSuitability !== 'N/A' ? `<p><strong>Platform Suitability:</strong> ${video.platformSuitability}</p>` : ''}
+                ${video.useCases && video.useCases !== 'N/A' ? `<p><strong>Use Cases:</strong> ${video.useCases}</p>` : ''}
+                ${video.notes && video.notes !== 'N/A' ? `<p><strong>Notes:</strong> ${video.notes}</p>` : ''}
             `;
             document.getElementById('modal-details').innerHTML = details;
 
